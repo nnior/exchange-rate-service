@@ -14,6 +14,7 @@ import java.util.List;
 public class BasicResponse {
 
     private final String message;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private final Object result;
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<ErrorResponse> errors;
