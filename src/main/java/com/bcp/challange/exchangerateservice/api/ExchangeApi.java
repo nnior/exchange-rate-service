@@ -1,16 +1,19 @@
 package com.bcp.challange.exchangerateservice.api;
 
 import com.bcp.challange.exchangerateservice.domain.entity.Exchange;
+import com.bcp.challange.exchangerateservice.domain.request.UpdateExchangeRequest;
+import com.bcp.challange.exchangerateservice.domain.response.BasicResponse;
 import com.bcp.challange.exchangerateservice.domain.response.ExchangeCurrencyResponse;
+import com.bcp.challange.exchangerateservice.domain.response.error.ErrorResponse;
 import com.bcp.challange.exchangerateservice.repository.ExchangeRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.support.WebExchangeBindException;
 import reactor.core.publisher.Mono;
 
+import javax.validation.Valid;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.net.URI;
@@ -55,6 +58,23 @@ public class ExchangeApi {
                 })
                 .map(ResponseEntity::ok)
                 .defaultIfEmpty(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/exchange")
+    public Mono<ResponseEntity<BasicResponse>> updateExchangeRate(@Valid @RequestBody Mono<UpdateExchangeRequest> request) {
+        return request
+            .flatMap(r -> exchangeRepository.findByQuoteAsset(r.getMoneda())
+                    .doOnNext(e -> e.setRate(BigDecimal.valueOf(r.getMonto()))))
+            .flatMap(exchangeRepository::save)
+            .map(exchange -> ResponseEntity.ok().body(BasicResponse.builder()
+                .message("Se actualizo el tipo de cambio satisfactoriamente.").build()))
+            .defaultIfEmpty(ResponseEntity.notFound().build())
+            .onErrorResume(WebExchangeBindException.class, ex -> Mono.just(ResponseEntity.badRequest().body(BasicResponse
+                .builder().message("La peticion no tiene los valores correctos.")
+                    .errors(ex.getFieldErrors().stream()
+                        .map(fieldError -> new ErrorResponse(fieldError.getField(), fieldError.getDefaultMessage()))
+                        .collect(Collectors.toList()))
+                    .build())));
     }
 
 }
