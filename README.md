@@ -117,10 +117,7 @@ Authorization | STRING | YES | Token de acceso
     "id": 3,
     "symbol": "ALL",
     "description": "Albanian Lek"
-  },
-  .
-  .
-  .
+  }
 ]
 ```
 
@@ -190,10 +187,7 @@ Authorization | STRING | YES | Token de acceso
     "STD": 0.56658,
     "SCR": 0.57339,
     "CDF": 0.48623,
-    "BBD": 0.48889,
-    ..
-    ..
-    ..
+    "BBD": 0.48889
   }
 }
 ```
